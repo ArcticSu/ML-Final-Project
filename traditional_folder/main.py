@@ -58,7 +58,7 @@ def plot_results(results):
 # 主程序入口
 if __name__ == "__main__":
     # 加载数据
-    filepath = "data/movies_split.csv"
+    filepath = "./data/movies_split.csv"
     data = load_and_preprocess_data(filepath)
 
     # 特征提取与标签编码

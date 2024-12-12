@@ -101,7 +101,7 @@ def plot_metrics(results, model_name):
 # 主程序入口
 if __name__ == "__main__":
     # 数据路径
-    filepath = "../data/movies_split.csv"
+    filepath = "./data/movies_split.csv"
     data = load_data(filepath)
 
     # 标签编码

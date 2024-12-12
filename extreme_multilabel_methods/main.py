@@ -34,8 +34,15 @@ def encode_labels(genres):
 def plot_metrics(results, model_name):
     metrics = list(results.keys())
     values = list(results.values())
+
+    # 对指标按分数从高到低排序
+    sorted_indices = np.argsort(values)[::-1]
+    metrics = [metrics[i] for i in sorted_indices]
+    values = [values[i] for i in sorted_indices]
+
     plt.figure(figsize=(10, 6))
-    plt.bar(metrics, values, color='skyblue')
+    colors = ['skyblue' if v >= 0.3 else 'lightcoral' for v in values]  # 分数高于0.3为蓝色，低于为红色
+    plt.bar(metrics, values, color=colors)
     plt.title(f"{model_name} Performance Metrics")
     plt.xticks(rotation=45)
     plt.ylabel("Score")
