@@ -10,10 +10,12 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.metrics import AUC
 from imblearn.over_sampling import SMOTE
+from matplotlib import pyplot as plt
 from models.textcnn import TextCNN
 from models.textrnn import TextRNN
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from evaluation.evaluation import evaluate_multilabel_custom
+
 # 数据加载和预处理
 def load_and_preprocess_data(filepath):
     data = pd.read_csv(filepath)
@@ -54,6 +56,18 @@ def oversample_data(X, y):
     X_resampled, y_resampled = smote.fit_resample(X, y)
     return X_resampled, y_resampled
 
+# 可视化 Micro F1
+def plot_micro_f1(history, micro_f1_scores, model_name):
+    plt.figure(figsize=(8, 6))
+    plt.plot(range(1, len(micro_f1_scores) + 1), micro_f1_scores, marker='o', label='Micro F1')
+    plt.title(f'{model_name} Micro F1 Score Over Epochs')
+    plt.xlabel('Epochs')
+    plt.ylabel('Micro F1 Score')
+    plt.xticks(range(1, len(micro_f1_scores) + 1))
+    plt.legend()
+    plt.grid()
+    plt.show()
+
 # 模型训练与评估
 def train_and_evaluate_deep_learning(X_train, X_test, y_train, y_test, model, model_name, batch_size=32, epochs=10):
     model.compile(optimizer=Adam(learning_rate=0.001),
@@ -62,21 +76,34 @@ def train_and_evaluate_deep_learning(X_train, X_test, y_train, y_test, model, mo
 
     early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
-    history = model.fit(X_train, y_train,
-                        validation_data=(X_test, y_test),
-                        epochs=epochs,
-                        batch_size=batch_size,
-                        callbacks=[early_stopping],
-                        verbose=1)
+    micro_f1_scores = []
 
-    y_pred = (model.predict(X_test) > 0.5).astype(int)
-    results = evaluate_multilabel_custom(y_test, y_pred)
+    for epoch in range(1, epochs + 1):
+        model.fit(X_train, y_train,
+                  validation_data=(X_test, y_test),
+                  epochs=1,
+                  batch_size=batch_size,
+                  verbose=1)
 
-    print(f"{model_name} Results:")
-    for metric, value in results.items():
+        y_pred = (model.predict(X_test) > 0.5).astype(int)
+        results = evaluate_multilabel_custom(y_test, y_pred)
+        micro_f1_scores.append(results['Micro F1'])
+
+        print(f"Epoch {epoch}/{epochs} - Micro F1: {results['Micro F1']:.4f}")
+
+        if epoch > 3 and micro_f1_scores[-1] < micro_f1_scores[-2]:
+            print("Early stopping due to decreasing Micro F1")
+            break
+
+    plot_micro_f1(None, micro_f1_scores, model_name)
+
+    final_results = evaluate_multilabel_custom(y_test, (model.predict(X_test) > 0.5).astype(int))
+
+    print(f"{model_name} Final Results:")
+    for metric, value in final_results.items():
         print(f"{metric}: {value:.4f}")
 
-    return results
+    return final_results
 
 # 主程序入口
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MultiLabelBinarizer
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from evaluation.evaluation import evaluate_multilabel
+from evaluation.evaluation import evaluate_multilabel_relaxed
 import matplotlib.pyplot as plt
 from xml_methods.dismec import DiSMEC
 from xml_methods.xml_cnn import XMLCNN
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     dismec_model.fit(X_train_vec, y_train)
     y_pred_dismec = dismec_model.predict(X_test_vec)
 
-    results_dismec = evaluate_multilabel(y_test, y_pred_dismec)
+    results_dismec = evaluate_multilabel_relaxed(y_test, y_pred_dismec)
     print("DiSMEC Results:")
     for metric, value in results_dismec.items():
         print(f"{metric}: {value:.4f}")
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     xml_cnn_model.fit(X_train_seq, y_train)
     y_pred_xmlcnn = xml_cnn_model.predict(X_test_seq)
 
-    results_xmlcnn = evaluate_multilabel(y_test, y_pred_xmlcnn)
+    results_xmlcnn = evaluate_multilabel_relaxed(y_test, y_pred_xmlcnn)
     print("XML-CNN Results:")
     for metric, value in results_xmlcnn.items():
         print(f"{metric}: {value:.4f}")
